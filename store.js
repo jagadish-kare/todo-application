@@ -82,11 +82,10 @@ function localstore(){
         }
     }
 }
-// console.log(CloudStorage().createTodo("calll"))++++++
-// CloudStorage().deleteItem(9)+++++++++
-// CloudStorage().deleteAll()++++++++++
-// const a = await CloudStorage().getTodo(URL)+++++++
-// const a = await CloudStorage().getTodoItem(12)+++++++
-const a = CloudStorage().editTodo(2 , "swimming")
-console.log(a)
+// console.log(CloudStorage().createTodo("calll"))
+// CloudStorage().deleteItem(9)
+// CloudStorage().deleteAll()
+// const a = await CloudStorage().getTodo(URL)
+// const a = await CloudStorage().getTodoItem(12)
+// const a = CloudStorage().editTodo(2 , "swimming")
 export {CloudStorage , localstore}

@@ -8,6 +8,7 @@ export function todoListView () {
     return{
         prepareTodoItem : function (taskName) {
             const taskNode = document.createElement("span");
+            taskNode.className = "task-span"
             taskNode.innerText = taskName;
             return taskNode
         },
