@@ -1,5 +1,5 @@
 const URL = "https://mk-ap-todo-webapi.azurewebsites.net/api/JagadishTodoItems";
-    const deleteURL = "https://mk-ap-todo-webapi.azurewebsites.net/JagadishTodoItems/deleteAll";
+const deleteURL = "https://mk-ap-todo-webapi.azurewebsites.net/JagadishTodoItems/deleteAll";
 function CloudStorage(){
     
     return{
@@ -29,10 +29,11 @@ function CloudStorage(){
             }
         },
         editTodo :async function(todoId , changeName) {
-            this.setItem(`${URL}/${todoId}` , {
+            const edit = await this.setItem(`${URL}/${todoId}` , {
                 method : "PUT",
-                body : JSON.stringify({"name" : changeName ,}),
+                body : JSON.stringify({"id" : todoId ,"name" : changeName , "isComplete" : false })
             })
+            return  edit
         },
         deleteItem : function(todoId) {
             this.setItem(`${URL}/${todoId}`, {
@@ -81,11 +82,11 @@ function localstore(){
         }
     }
 }
-// console.log(CloudStorage().createTodo("shop"))+++++++
+// console.log(CloudStorage().createTodo("calll"))++++++
 // CloudStorage().deleteItem(9)+++++++++
 // CloudStorage().deleteAll()++++++++++
 // const a = await CloudStorage().getTodo(URL)+++++++
 // const a = await CloudStorage().getTodoItem(12)+++++++
-const a = await CloudStorage().editTodo(12 , "movie")
+const a = CloudStorage().editTodo(2 , "swimming")
 console.log(a)
 export {CloudStorage , localstore}
