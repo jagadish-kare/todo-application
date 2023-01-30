@@ -1,6 +1,8 @@
 const URL = "https://mk-ap-todo-webapi.azurewebsites.net/api/JagadishTodoItems";
 const deleteURL = "https://mk-ap-todo-webapi.azurewebsites.net/JagadishTodoItems/deleteAll";
-function CloudStorage(){
+
+
+function cloudStorage(){
     
     return{
         getTodo  : async (apiURL) => {
@@ -19,14 +21,16 @@ function CloudStorage(){
         },
         createTodo : function (todoName){
             try{
-                this.setItem(URL, {
+                const result = this.setItem(URL, {
                     method : "POST",
                     body : JSON.stringify({"name" : todoName ,
                     }),
                 })
+                return result
             } catch(event){
                 alert("SOMETHING WENT WRONG...")
             }
+           
         },
         editTodo :async function(todoId , changeName) {
             const edit = await this.setItem(`${URL}/${todoId}` , {
@@ -52,7 +56,7 @@ function CloudStorage(){
     }
 }
 
-function localstore(){
+function localStore(){
     const storage = localStorage;
 
     return{
@@ -60,14 +64,11 @@ function localstore(){
             return storage.getItem("todo")?JSON.parse(storage.getItem("todo")) : []
         },
         setTodo : function (arr) {
-            return storage.setItem("todo" , JSON.stringify(arr))
+             storage.setItem("todo" , JSON.stringify(arr))
         },
-        createTodoList : function () {
-            this.setTodo(array)
-        },
-        deletetodoItem : function (todoId) {
-            const list = this.get();
-            list.splice(todoId , 1);
+        deletetodoItem : function (index , list) {
+            // const list = this.get();
+            list.splice(index , 1);
             this.setTodo(list);
         },
         deleteAlltodoItem : function () {
@@ -75,9 +76,9 @@ function localstore(){
             list.splice(0);
             this.setTodo(list);
         },
-        editTodoItem : function (todoId , editName) {
+        editTodoItem : function (index , editName) {
             const editList = this.get();
-            editList.splice(todoId , 1 , editName)
+            editList.splice(index , 1 , editName)
             this.setTodo(editList);
         }
     }
@@ -88,4 +89,5 @@ function localstore(){
 // const a = await CloudStorage().getTodo(URL)
 // const a = await CloudStorage().getTodoItem(12)
 // const a = CloudStorage().editTodo(2 , "swimming")
-export {CloudStorage , localstore}
+export {cloudStorage , localStore}
+cloudStorage().getTodo(URL)
