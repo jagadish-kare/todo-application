@@ -61,25 +61,22 @@ function localStore(){
 
     return{
         get : function () {
-            return storage.getItem("todo")?JSON.parse(storage.getItem("todo")) : []
+            let list = storage.getItem("todo")?JSON.parse(storage.getItem("todo")) : []
+            return list
         },
         setTodo : function (arr) {
              storage.setItem("todo" , JSON.stringify(arr))
         },
         deletetodoItem : function (index , list) {
-            // const list = this.get();
             list.splice(index , 1);
             this.setTodo(list);
         },
         deleteAlltodoItem : function () {
-            const list = this.get();
-            list.splice(0);
-            this.setTodo(list);
+            this.setTodo([]);
         },
-        editTodoItem : function (index , editName) {
-            const editList = this.get();
-            editList.splice(index , 1 , editName)
-            this.setTodo(editList);
+        editTodoItem : function (index , editName , list) {
+            list.splice(index , 1 , editName)
+            this.setTodo(list);
         }
     }
 }
@@ -90,4 +87,4 @@ function localStore(){
 // const a = await CloudStorage().getTodoItem(12)
 // const a = CloudStorage().editTodo(2 , "swimming")
 export {cloudStorage , localStore}
-cloudStorage().getTodo(URL)
+// cloudStorage().getTodo(URL)
