@@ -6,7 +6,7 @@ const addBtn = document.querySelector(".addBtn");
 const todoContainer = document.querySelector(".todoContainer");
 const mainDiv = document.querySelector(".main");
 const deleteAllItem = document.querySelector(".deleteAll");
-const todoArr = localStorage.getItem("todo")? JSON.parse(localStorage.getItem("todo")): [];
+
 
 export function controller() {
   return {
@@ -28,8 +28,9 @@ export function controller() {
         const text = todoInput.value;
         const response = await cloudStorage().createTodo(text);
         const result = await response.json();
-        todoArr.push(text);
-        localStore().setTodo(todoArr);
+        const todolist = localStore().get()
+        todolist.push(text);
+        localStore().setTodo(todolist);
         this.addEvent(text, result.id);
         todoInput.value = "";
       }
@@ -37,38 +38,42 @@ export function controller() {
 
     deleteEvent: function (deleteBtn) {
       const dele = deleteBtn.parentElement;
+      const text = dele.firstChild.innerText
       const id = deleteBtn.id;
       todoContainer.removeChild(dele);
       cloudStorage().deleteItem(id);
-      const todolist = localStore().get();
+      const todolist = localStore().get()
       for (let i = 0; i < todolist.length; i++) {
-        if (todolist[i] == dele.innerText) {
+        if (todolist[i] == text) {
           localStore().deletetodoItem(i, todolist);
         }
       }
     },
     editEvent: function (editBtn) {
       const edit = editBtn.parentElement;
-      const text = edit.firstChild.innerText;
-      todoInput.value = text;
+      const edittext = edit.firstChild.innerText;
+      todoInput.value = edittext;
       todoContainer.removeChild(edit);
       mainDiv.removeChild(addBtn);
       const id = editBtn.id;
-      const save = todoListView().prepareSaveBtn(id);
+      const save = todoListView().prepareSaveBtn(id , edittext);
       save.className = "saveBtn";
       todoListView().append(mainDiv, save);
     },
 
-    saveEvent: async function (saveBtn) {
+    saveEvent: async function (saveBtn , oldText) {
       if (todoInput.value == "") {
         alert("ENTER YOUR TASK...");
       } else {
         const text = todoInput.value;
         const id = saveBtn.id;
         await cloudStorage().editTodo(id, text);
-        // localStore().editTodoItem(index , textValue)
-        todoArr.push(text);
-        localStore().setTodo(todoArr);
+        const todolist = localStore().get()
+        for (let i = 0; i < todolist.length; i++) {
+            if (todolist[i] == oldText) {
+                localStore().editTodoItem(i , text , todolist)
+            }
+        }       
         this.addEvent(text, id);
         mainDiv.removeChild(saveBtn);
         mainDiv.appendChild(addBtn);
