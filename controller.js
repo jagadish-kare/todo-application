@@ -1,90 +1,104 @@
 import { todoListView } from "./index.js";
-import { cloudStorage , localStore } from "./store.js";
+import { cloudStorage, localStore } from "./store.js";
 const todoInput = document.querySelector(".todoInput");
 const url = "https://mk-ap-todo-webapi.azurewebsites.net/api/JagadishTodoItems";
 const addBtn = document.querySelector(".addBtn");
 const todoContainer = document.querySelector(".todoContainer");
-const mainDiv = document.querySelector(".main")
-const editItem = document.querySelector(".editBn")
-const element = document.querySelector(".deleteBn");
-const deleteAllItem = document.querySelector(".deleteAll")
-const todoArr = localStorage.getItem("Todo")?JSON.parse(localStorage.getItem("Todo")) : []
+const mainDiv = document.querySelector(".main");
+const deleteAllItem = document.querySelector(".deleteAll");
+const todoArr = localStorage.getItem("todo")? JSON.parse(localStorage.getItem("todo")): [];
 
-function controller () {
-    return{
-    addEvent : function (nodetext , deleId) { 
-        const node = todoListView().prepareTodoItem(nodetext);
-        const dBtn = todoListView().prepareDeleteBtn(deleId);
-        const eBtn = todoListView().prepareEditBtn(deleId);
-        todoListView().append(node , eBtn);
-        todoListView().append(node , dBtn);
-        todoListView().append(todoContainer , node);
+export function controller() {
+  return {
+    addEvent: function (nodetext, delId) {
+      const para = todoListView().prepareTodoPara();
+      const node = todoListView().prepareTodoItem(nodetext);
+      const dBtn = todoListView().prepareDeleteBtn(delId);
+      const eBtn = todoListView().prepareEditBtn(delId);
+      todoListView().append(para, node);
+      todoListView().append(para, eBtn);
+      todoListView().append(para, dBtn);
+      todoListView().append(todoContainer, para);
     },
 
-    createEvent :async function () {
-        if(todoInput.value == ""){
-            alert("ENTER YOUR TASK...")
-        }else{
+    createEvent: async function () {
+      if (todoInput.value == "") {
+        alert("ENTER YOUR TASK...");
+      } else {
         const text = todoInput.value;
-        const response = await cloudStorage().createTodo(text)
-        const result = await response.json()
-        const id = result.id
-        todoArr.push(text)                                  
+        const response = await cloudStorage().createTodo(text);
+        const result = await response.json();
+        todoArr.push(text);
         localStore().setTodo(todoArr);
-        this.addEvent(text , id )
-        todoInput.value = ""
+        this.addEvent(text, result.id);
+        todoInput.value = "";
+      }
+    },
 
-        function deleteItemId (id) {
-        
-            element.parentElement.remove();
-            cloudStorage().deleteItem(id);
-            localStore().deletetodoItem(id)
+    deleteEvent: function (deleteBtn) {
+      const dele = deleteBtn.parentElement;
+      const id = deleteBtn.id;
+      todoContainer.removeChild(dele);
+      cloudStorage().deleteItem(id);
+      const todolist = localStore().get();
+      for (let i = 0; i < todolist.length; i++) {
+        if (todolist[i] == dele.innerText) {
+          localStore().deletetodoItem(i, todolist);
         }
-        }
+      }
+    },
+    editEvent: function (editBtn) {
+      const edit = editBtn.parentElement;
+      const text = edit.firstChild.innerText;
+      todoInput.value = text;
+      todoContainer.removeChild(edit);
+      mainDiv.removeChild(addBtn);
+      const id = editBtn.id;
+      const save = todoListView().prepareSaveBtn(id);
+      save.className = "saveBtn";
+      todoListView().append(mainDiv, save);
     },
 
-    // deleteEvent : ,
+    saveEvent: async function (saveBtn) {
+      if (todoInput.value == "") {
+        alert("ENTER YOUR TASK...");
+      } else {
+        const text = todoInput.value;
+        const id = saveBtn.id;
+        await cloudStorage().editTodo(id, text);
+        // localStore().editTodoItem(index , textValue)
+        todoArr.push(text);
+        localStore().setTodo(todoArr);
+        this.addEvent(text, id);
+        mainDiv.removeChild(saveBtn);
+        mainDiv.appendChild(addBtn);
+        todoInput.value = "";
+      }
+    },
 
-    editEvent : function () {
-       
-        const textValue = editItem.parentElement.innerText;
-        todoInput.value = textValue;
-        cloudStorage().editTodo(id , textValue)
-        localStore().editTodoItem(id , textValue)
-        const save = todoListView().prepareSaveBtn();
-        todoListView().append(mainDiv , save)
+    deleteAll: function () {
+      const confirmation = confirm("ALL YOUR TASKS WILL BE DELETED...");
+      if (confirmation == true) {
+        cloudStorage().deleteAll();
+        localStore().deleteAlltodoItem();
+        todoContainer.innerHTML = "";
+      }
     },
-    deleteAll : function () {
-        cloudStorage().deleteAll()
-        localStore().deleteAlltodoItem()
-        todoContainer.innerHTML = ""
+    refreshEvent: async function () {
+      const arrTodo = await cloudStorage().getTodo(url);
+      arrTodo.map(({ name, id }) => {
+        this.addEvent(name, id);
+      });
     },
-    refreshEvent : async function () {
-        const arrTodo = await cloudStorage().getTodo(url)
-        arrTodo.map(
-            ({name , id})=>{   
-            this.addEvent(name , arrTodo.id)
-            }
-        )
-    }
-    } 
+  };
 }
 
-addBtn.addEventListener("click" , ()=>{
-     controller().createEvent()
-    })
+addBtn.addEventListener("click", () => {
+  controller().createEvent();
+});
 
-element?.addEventListener("click" , () => {
-    controller().createEvent().deleteItemId
-})
+deleteAllItem.addEventListener("click", () => {
+  controller().deleteAll();
+});
 
-editItem?.addEventListener("click" , () => {
-    controller().editEvent()
-})
-
-deleteAllItem.addEventListener("click" , () => {
-    controller().deleteAll()
-})
-
-controller().refreshEvent()
-
+controller().refreshEvent();
