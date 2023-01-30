@@ -1,0 +1,45 @@
+h1{
+    text-align: center;
+}
+.todoInput{
+    width: 500px;
+    height: 50px;
+    margin-left: 50px;
+    text-align: center;
+}
+.addBtn{
+    width: 100px;
+    height: 55px;
+    margin-left: 10px;
+}
+.deleteBn{
+    height: 30px;
+    width: 80px;
+    margin-left: 10px;
+}
+.editBn{
+    height: 30px;
+    width: 60px;
+    margin-left: 10px;
+}
+.task-span{
+    display: block;
+    height: 30px;
+    margin-top: 10px;
+}
+.todoContainer{
+    margin-top: 20px;
+    margin-left: 150px;
+}
+.deleteAll{
+    position: absolute;
+    bottom: 20px;
+    right: 30px;
+    height: 40px;
+    width: 100px;
+}
+.saveBtn{
+    width: 100px;
+    height: 55px;
+    margin-left: 10px;
+}
