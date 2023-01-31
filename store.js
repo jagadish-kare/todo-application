@@ -32,10 +32,10 @@ function cloudStorage(){
             }
            
         },
-        editTodo :async function(todoId , changeName) {
+        editTodo :async function(todoId , changeName , status = false) {
             const edit = await this.setItem(`${URL}/${todoId}` , {
                 method : "PUT",
-                body : JSON.stringify({"id" : todoId ,"name" : changeName , "isComplete" : false })
+                body : JSON.stringify({"id" : todoId ,"name" : changeName , "isCompleted" : status })
             })
             return  edit
         },
