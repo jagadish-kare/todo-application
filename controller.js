@@ -6,16 +6,28 @@ const addBtn = document.querySelector(".addBtn");
 const todoContainer = document.querySelector(".todoContainer");
 const mainDiv = document.querySelector(".main");
 const deleteAllItem = document.querySelector(".deleteAll");
-
+todoInput.addEventListener("keypress", function (event) {
+  if (event.key == "Enter") {
+    if (mainDiv.innerText == "ADD") {
+      event.preventDefault();
+      controller().createEvent();
+    }
+  }
+});
 
 export function controller() {
   return {
-    addEvent: function (nodetext, delId) {
+    addEvent: function (nodetext, Id, stat) {
       const para = todoListView().prepareTodoPara();
       const node = todoListView().prepareTodoItem(nodetext);
-      const dBtn = todoListView().prepareDeleteBtn(delId);
-      const eBtn = todoListView().prepareEditBtn(delId);
+      const dBtn = todoListView().prepareDeleteBtn(Id);
+      const eBtn = todoListView().prepareEditBtn(Id);
+      let cBox = todoListView().prepareCheckBox(Id);
       todoListView().append(para, node);
+      todoListView().append(para, cBox);
+      if (stat == true) {
+        cBox.checked = true;
+      }
       todoListView().append(para, eBtn);
       todoListView().append(para, dBtn);
       todoListView().append(todoContainer, para);
@@ -28,7 +40,7 @@ export function controller() {
         const text = todoInput.value;
         const response = await cloudStorage().createTodo(text);
         const result = await response.json();
-        const todolist = localStore().get()
+        const todolist = localStore().get();
         todolist.push(text);
         localStore().setTodo(todolist);
         this.addEvent(text, result.id);
@@ -38,11 +50,11 @@ export function controller() {
 
     deleteEvent: function (deleteBtn) {
       const dele = deleteBtn.parentElement;
-      const text = dele.firstChild.innerText
+      const text = dele.firstChild.innerText;
       const id = deleteBtn.id;
       todoContainer.removeChild(dele);
       cloudStorage().deleteItem(id);
-      const todolist = localStore().get()
+      const todolist = localStore().get();
       for (let i = 0; i < todolist.length; i++) {
         if (todolist[i] == text) {
           localStore().deletetodoItem(i, todolist);
@@ -56,24 +68,24 @@ export function controller() {
       todoContainer.removeChild(edit);
       mainDiv.removeChild(addBtn);
       const id = editBtn.id;
-      const save = todoListView().prepareSaveBtn(id , edittext);
+      const save = todoListView().prepareSaveBtn(id, edittext);
       save.className = "saveBtn";
       todoListView().append(mainDiv, save);
     },
 
-    saveEvent: async function (saveBtn , oldText) {
+    saveEvent: async function (saveBtn, oldText) {
       if (todoInput.value == "") {
         alert("ENTER YOUR TASK...");
       } else {
         const text = todoInput.value;
         const id = saveBtn.id;
         await cloudStorage().editTodo(id, text);
-        const todolist = localStore().get()
+        const todolist = localStore().get();
         for (let i = 0; i < todolist.length; i++) {
-            if (todolist[i] == oldText) {
-                localStore().editTodoItem(i , text , todolist)
-            }
-        }       
+          if (todolist[i] == oldText) {
+            localStore().editTodoItem(i, text, todolist);
+          }
+        }
         this.addEvent(text, id);
         mainDiv.removeChild(saveBtn);
         mainDiv.appendChild(addBtn);
@@ -82,17 +94,41 @@ export function controller() {
     },
 
     deleteAll: function () {
-      const confirmation = confirm("ALL YOUR TASKS WILL BE DELETED...");
-      if (confirmation == true) {
-        cloudStorage().deleteAll();
-        localStore().deleteAlltodoItem();
-        todoContainer.innerHTML = "";
+      if (todoContainer.firstChild) {
+        const confirmation = confirm("ALL YOUR TASKS WILL BE DELETED...");
+        if (confirmation == true) {
+          cloudStorage().deleteAll();
+          localStore().deleteAlltodoItem();
+          todoContainer.innerHTML = "";
+        }
+      } else {
+        alert("NO... ITEMS... TO... DELETE");
       }
     },
+
+    checkEvent: async function (checkBox) {
+      const id = checkBox.id;
+      const checkText = checkBox.parentElement.firstChild;
+      const Text = checkBox.parentElement.firstChild.innerText;
+      if (checkBox.checked) {
+        checkText.style.textDecoration = "line-through";
+        await cloudStorage().editTodo(id, Text, true);
+        const todolist = localStore().get();
+        for (let i = 0; i < todolist.length; i++) {
+          if (todolist[i] == Text) {
+            localStore().editTodoItem(i, Text, todolist);
+          }
+        }
+      } else {
+        checkText.style.textDecoration = "none";
+        await cloudStorage().editTodo(id, Text);
+      }
+    },
+
     refreshEvent: async function () {
       const arrTodo = await cloudStorage().getTodo(url);
-      arrTodo.map(({ name, id }) => {
-        this.addEvent(name, id);
+      arrTodo.map(({ name, id, isCompleted }) => {
+        this.addEvent(name, id, isCompleted);
       });
     },
   };
