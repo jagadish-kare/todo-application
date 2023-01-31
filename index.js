@@ -6,6 +6,16 @@ export function todoListView () {
             taskPara.className = "task-para"
             return taskPara
         },
+        prepareCheckBox : function (checkId) {
+            const checkBox = document.createElement("input")
+            checkBox.type = "checkbox";
+            checkBox.className = "check"
+            checkBox.setAttribute("id", checkId)
+            checkBox.addEventListener("click", () => {
+                controller().checkEvent(checkBox)
+            })
+            return checkBox;
+        },
         prepareTodoItem : function (taskName) {
             const taskNode = document.createElement("span");
             taskNode.className = "task-span"
