@@ -1,14 +1,14 @@
-import { todoListView } from "./view.js";
-import { cloudStorage, localStore } from "./modal.js";
+import { TodoListView } from "./view.js";
+import { CloudStorage, LocalStore } from "./modal.js";
 const todoInput = document.querySelector(".todoInput");
-const url = "https://mk-ap-todo-webapi.azurewebsites.net/api/JagadishTodoItems";
+const url = "https://mk-todo-web-api.azurewebsites.net/api/JagadishTodoItems";
 const addBtn = document.querySelector(".addBtn");
 const todoContainer = document.querySelector(".todoContainer");
 const mainDiv = document.querySelector(".main");
 const deleteAllItem = document.querySelector(".deleteAll");
 todoInput.addEventListener("keypress", function (event) {
-  if (event.key == "Enter") {
-    if (mainDiv.innerText == "ADD") {
+  if (event.key === "Enter") {
+    if (mainDiv.innerText === "ADD") {
       event.preventDefault();
       controller().createEvent();
     }
@@ -16,33 +16,38 @@ todoInput.addEventListener("keypress", function (event) {
 });
 
 export function controller() {
+  const {prepareTodoPara, prepareTodoItem,prepareDeleteBtn,prepareEditBtn, prepareCheckBox, append, prepareSaveBtn} = TodoListView();
+  const {getTodo, createTodo, deleteItem, deleteAll, editTodo} = CloudStorage();
+  const {get, setTodo, deleteAlltodoItem, deletetodoItem, editTodoItem} = LocalStore()
   return {
+    
     addEvent: function (nodetext, Id, stat) {
-      const para = todoListView().prepareTodoPara();
-      const node = todoListView().prepareTodoItem(nodetext);
-      const dBtn = todoListView().prepareDeleteBtn(Id);
-      const eBtn = todoListView().prepareEditBtn(Id);
-      let cBox = todoListView().prepareCheckBox(Id);
-      todoListView().append(para, node);
-      todoListView().append(para, cBox);
-      if (stat == true) {
+      const para = prepareTodoPara();
+      const node = prepareTodoItem(nodetext);
+      const dBtn = prepareDeleteBtn(Id);
+      const eBtn = prepareEditBtn(Id);
+      let cBox = prepareCheckBox(Id);
+      append(para, node);
+      append(para, cBox);
+      if (stat === true) {
         cBox.checked = true;
+        node.style.textDecoration = "line-through";
       }
-      todoListView().append(para, eBtn);
-      todoListView().append(para, dBtn);
-      todoListView().append(todoContainer, para);
+      append(para, eBtn);
+      append(para, dBtn);
+      append(todoContainer, para);
     },
 
     createEvent: async function () {
-      if (todoInput.value == "") {
+      if (todoInput.value === "") {
         alert("ENTER YOUR TASK...");
       } else {
         const text = todoInput.value;
-        const response = await cloudStorage().createTodo(text);
+        const response = await createTodo(text);
         const result = await response.json();
-        const todolist = localStore().get();
+        const todolist = get();
         todolist.push(text);
-        localStore().setTodo(todolist);
+        setTodo(todolist);
         this.addEvent(text, result.id);
         todoInput.value = "";
       }
@@ -53,11 +58,11 @@ export function controller() {
       const text = dele.firstChild.innerText;
       const id = deleteBtn.id;
       todoContainer.removeChild(dele);
-      cloudStorage().deleteItem(id);
-      const todolist = localStore().get();
+      deleteItem(id);
+      const todolist = get();
       for (let i = 0; i < todolist.length; i++) {
-        if (todolist[i] == text) {
-          localStore().deletetodoItem(i, todolist);
+        if (todolist[i] === text) {
+          deletetodoItem(i, todolist);
         }
       }
     },
@@ -68,22 +73,22 @@ export function controller() {
       todoContainer.removeChild(edit);
       mainDiv.removeChild(addBtn);
       const id = editBtn.id;
-      const save = todoListView().prepareSaveBtn(id, edittext);
+      const save = prepareSaveBtn(id, edittext);
       save.className = "saveBtn";
-      todoListView().append(mainDiv, save);
+      append(mainDiv, save);
     },
 
     saveEvent: async function (saveBtn, oldText) {
-      if (todoInput.value == "") {
+      if (todoInput.value === "") {
         alert("ENTER YOUR TASK...");
       } else {
         const text = todoInput.value;
         const id = saveBtn.id;
-        await cloudStorage().editTodo(id, text);
-        const todolist = localStore().get();
+        await editTodo(id, text);
+        const todolist = get();
         for (let i = 0; i < todolist.length; i++) {
-          if (todolist[i] == oldText) {
-            localStore().editTodoItem(i, text, todolist);
+          if (todolist[i] === oldText) {
+            editTodoItem(i, text, todolist);
           }
         }
         this.addEvent(text, id);
@@ -96,9 +101,9 @@ export function controller() {
     deleteAll: function () {
       if (todoContainer.firstChild) {
         const confirmation = confirm("ALL YOUR TASKS WILL BE DELETED...");
-        if (confirmation == true) {
-          cloudStorage().deleteAll();
-          localStore().deleteAlltodoItem();
+        if (confirmation === true) {
+          deleteAll();
+          deleteAlltodoItem();
           todoContainer.innerHTML = "";
         }
       } else {
@@ -112,22 +117,15 @@ export function controller() {
       const Text = checkBox.parentElement.firstChild.innerText;
       if (checkBox.checked) {
         checkText.style.textDecoration = "line-through";
-        await cloudStorage().editTodo(id, Text, true);
-        const todolist = localStore().get();
-        for (let i = 0; i < todolist.length; i++) {
-          if (todolist[i] == Text) {
-            
-            localStore().editTodoItem(i, Text, todolist);
-          }
-        }
+        await editTodo(id, Text, true);
       } else {
         checkText.style.textDecoration = "none";
-        await cloudStorage().editTodo(id, Text);
+        await editTodo(id, Text);
       }
     },
 
     refreshEvent: async function () {
-      const arrTodo = await cloudStorage().getTodo(url);
+      const arrTodo = await getTodo(url);
       arrTodo.map(({ name, id, isCompleted }) => {
         this.addEvent(name, id, isCompleted);
       });
