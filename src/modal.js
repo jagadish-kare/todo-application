@@ -1,10 +1,17 @@
-const URL = "https://mk-ap-todo-webapi.azurewebsites.net/api/JagadishTodoItems";
-const deleteURL = "https://mk-ap-todo-webapi.azurewebsites.net/JagadishTodoItems/deleteAll";
+const URL = "https://mk-todo-web-api.azurewebsites.net/api/JagadishTodoItems";
+const deleteURL = "https://mk-todo-web-api.azurewebsites.net/JagadishTodoItems/deleteAll";
 
 
-function cloudStorage(){
+function CloudStorage(){
     
     return{
+        DataStructure : function ( name, id , isCompleted) {
+            return{
+                name,
+                id,
+                isCompleted
+            }
+          },
         getTodo  : async (apiURL) => {
             const response = await fetch( apiURL, { method : 'GET'})
             let result = await response.json()
@@ -21,10 +28,9 @@ function cloudStorage(){
         },
         createTodo : function (todoName){
             try{
-                const result = this.setItem(URL, {
+                const result = CloudStorage().setItem(URL, {
                     method : "POST",
-                    body : JSON.stringify({"name" : todoName ,
-                    }),
+                    body : JSON.stringify(new CloudStorage().DataStructure(todoName)),
                 })
                 return result
             } catch(event){
@@ -33,30 +39,27 @@ function cloudStorage(){
            
         },
         editTodo :async function(todoId , changeName , status = false) {
-            const edit = await this.setItem(`${URL}/${todoId}` , {
+            const edit = await CloudStorage().setItem(`${URL}/${todoId}` , {
                 method : "PUT",
-                body : JSON.stringify({"id" : todoId ,"name" : changeName , "isCompleted" : status })
+                body : JSON.stringify(new CloudStorage().DataStructure( changeName , todoId , status))
             })
             return  edit
         },
         deleteItem : function(todoId) {
-            this.setItem(`${URL}/${todoId}`, {
+            CloudStorage().setItem(`${URL}/${todoId}`, {
                 method : "DELETE" ,
             });
         },
         deleteAll : function(){
-            this.setItem(deleteURL, {
+            CloudStorage().setItem(deleteURL, {
                 method : "DELETE",
             });
         },
-        getTodoItem : async function (todoId){
-           const item =  this.getTodo(`${URL}/${todoId}`)
-           return item
-        },
+
     }
 }
 
-function localStore(){
+function LocalStore(){
     const storage = localStorage;
 
     return{
@@ -69,15 +72,15 @@ function localStore(){
         },
         deletetodoItem : function (index , list) {
             list.splice(index , 1);
-            this.setTodo(list);
+            LocalStore().setTodo(list);
         },
         deleteAlltodoItem : function () {
-            this.setTodo([]);
+            LocalStore().setTodo([]);
         },
         editTodoItem : function (index , editName , list) {
             list.splice(index , 1 , editName)
-            this.setTodo(list);
+            LocalStore().setTodo(list);
         }
     }
 }
-export {cloudStorage , localStore}
+export {CloudStorage , LocalStore}
