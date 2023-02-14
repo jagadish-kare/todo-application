@@ -1,56 +1,57 @@
 import {controller} from "./controller.js"
-export function todoListView () {
+export function TodoListView () {
     return{
+        createElement : function (element, elementClassName) {
+            let task = document.createElement(element) 
+            task.className = elementClassName
+            return task
+        },
+        addAttributeEventListener : function (element, id, onClickFunction) {
+            element.setAttribute("id", id)
+            element.addEventListener("click", onClickFunction)
+            return element
+        },
+
         prepareTodoPara : function () {
-            const taskPara = document.createElement("p")
-            taskPara.className = "task-para"
+            const taskPara = TodoListView().createElement("p" , "task-para")
             return taskPara
         },
         prepareCheckBox : function (checkId) {
-            const checkBox = document.createElement("input")
+            const checkBox = TodoListView().createElement("input", "check")
             checkBox.type = "checkbox";
-            checkBox.className = "check"
-            checkBox.setAttribute("id", checkId)
-            checkBox.addEventListener("click", () => {
+            TodoListView().addAttributeEventListener(checkBox, checkId, () => {
                 controller().checkEvent(checkBox)
-            })
+            } )
             return checkBox;
         },
         prepareTodoItem : function (taskName) {
-            const taskNode = document.createElement("span");
-            taskNode.className = "task-span"
+            const taskNode = TodoListView().createElement("span", "task-span")
             taskNode.innerText = taskName;
             return taskNode
         },
 
         prepareEditBtn : function (ediId) {
-            const editBtn = document.createElement("button");
+            const editBtn = TodoListView().createElement("button", "editBn")
             editBtn.innerText = "EDIT";
-            editBtn.className = "editBn"
-            editBtn.setAttribute("id" , ediId)
-            editBtn.addEventListener("click" , () => {
+            TodoListView().addAttributeEventListener(editBtn, ediId, () => {
                 controller().editEvent(editBtn)
             })
             return editBtn
         },
 
         prepareDeleteBtn : function (delId) {
-            const deleteBtn = document.createElement("button");
+            const deleteBtn = TodoListView().createElement("button", "deleteBn")
             deleteBtn.innerText = "DELETE\n";
-            deleteBtn.className = "deleteBn"
-            deleteBtn.setAttribute("id" , delId)
-            deleteBtn.addEventListener("click" , () => {
+            TodoListView().addAttributeEventListener(deleteBtn, delId, () => {
                 controller().deleteEvent(deleteBtn)
             })
             return deleteBtn
         },
 
         prepareSaveBtn : function (savId , edittext) {
-            const saveBtn = document.createElement("button");
+            const saveBtn = TodoListView().createElement("button", "saveBn")
             saveBtn.innerText = "SAVE";
-            saveBtn.className = "saveBn"
-            saveBtn.setAttribute("id" , savId)
-            saveBtn.addEventListener("click",() => {
+            TodoListView().addAttributeEventListener(saveBtn, savId, () => {
                 controller().saveEvent(saveBtn , edittext)
             })
             return saveBtn
