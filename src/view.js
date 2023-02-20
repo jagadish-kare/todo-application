@@ -1,65 +1,86 @@
-import {controller} from "./controller.js"
-export function TodoListView () {
-    return{
-        createElement : function (element, elementClassName) {
-            let task = document.createElement(element) 
-            task.className = elementClassName
-            return task
-        },
-        addAttributeEventListener : function (element, id, onClickFunction) {
-            element.setAttribute("id", id)
-            element.addEventListener("click", onClickFunction)
-            return element
-        },
+import {todoContainer, controller } from "./controller.js";
+const {saveEvent, editEvent, deleteEvent, checkEvent} = controller()
 
-        prepareTodoPara : function () {
-            const taskPara = TodoListView().createElement("p" , "task-para")
-            return taskPara
-        },
-        prepareCheckBox : function (checkId) {
-            const checkBox = TodoListView().createElement("input", "check")
-            checkBox.type = "checkbox";
-            TodoListView().addAttributeEventListener(checkBox, checkId, () => {
-                controller().checkEvent(checkBox)
-            } )
-            return checkBox;
-        },
-        prepareTodoItem : function (taskName) {
-            const taskNode = TodoListView().createElement("span", "task-span")
-            taskNode.innerText = taskName;
-            return taskNode
-        },
+export function TodoListView() {
+  return {
+    addEvent: function (result) {
+      const para = prepareTodoPara();
+      const node = prepareTodoItem(result.name);
+      const dBtn = prepareDeleteBtn(result.id);
+      const eBtn = prepareEditBtn(result.id);
+      let cBox = prepareCheckBox(result.id);
+      TodoListView().append(para, node);
+      TodoListView().append(para, cBox);
+      if (result.isCompleted === true) {
+        cBox.checked = true;
+        node.style.textDecoration = "line-through";
+      }
+      TodoListView().append(para, eBtn);
+      TodoListView().append(para, dBtn);
+      TodoListView().append(todoContainer, para);
+    },
 
-        prepareEditBtn : function (ediId) {
-            const editBtn = TodoListView().createElement("button", "editBn")
-            editBtn.innerText = "EDIT";
-            TodoListView().addAttributeEventListener(editBtn, ediId, () => {
-                controller().editEvent(editBtn)
-            })
-            return editBtn
-        },
-
-        prepareDeleteBtn : function (delId) {
-            const deleteBtn = TodoListView().createElement("button", "deleteBn")
-            deleteBtn.innerText = "DELETE\n";
-            TodoListView().addAttributeEventListener(deleteBtn, delId, () => {
-                controller().deleteEvent(deleteBtn)
-            })
-            return deleteBtn
-        },
-
-        prepareSaveBtn : function (savId , edittext) {
-            const saveBtn = TodoListView().createElement("button", "saveBn")
-            saveBtn.innerText = "SAVE";
-            TodoListView().addAttributeEventListener(saveBtn, savId, () => {
-                controller().saveEvent(saveBtn , edittext)
-            })
-            return saveBtn
-        },
-
-        append : function (parent , child ) {
-            parent.appendChild(child);
-        },
-    }
+    append: function (parent, child) {
+      parent.appendChild(child);
+    },
+    
+    prepareSaveBtn: function (savId, edittext) {
+      const saveBtn = createElement("button", "saveBn");
+      saveBtn.innerText = "SAVE";
+      addAttributeEventListener(saveBtn, savId, () => {
+        saveEvent(saveBtn, edittext, savId);
+      });
+      return saveBtn;
+    },
+  };
 }
 
+function createElement(element, elementClassName) {
+  let task = document.createElement(element);
+  task.className = elementClassName;
+  return task;
+}
+
+function addAttributeEventListener(element, id, onClickFunction) {
+  element.setAttribute("id", id);
+  element.addEventListener("click", onClickFunction);
+  return element;
+}
+
+function prepareTodoPara() {
+  const taskPara = createElement("p", "task-para");
+  return taskPara;
+}
+
+function prepareCheckBox(checkId) {
+  const checkBox = createElement("input", "check");
+  checkBox.type = "checkbox";
+  addAttributeEventListener(checkBox, checkId, () => {
+    checkEvent(checkBox);
+  });
+  return checkBox;
+}
+
+function prepareTodoItem(taskName) {
+  const taskNode = createElement("span", "task-span");
+  taskNode.innerText = taskName;
+  return taskNode;
+}
+
+function prepareEditBtn(editId) {
+  const editBtn = createElement("button", "editBn");
+  editBtn.innerText = "EDIT";
+  addAttributeEventListener(editBtn, editId, () => {
+    editEvent(editBtn, editId);
+  });
+  return editBtn;
+}
+
+function prepareDeleteBtn(delId) {
+  const deleteBtn = createElement("button", "deleteBn");
+  deleteBtn.innerText = "DELETE\n";
+  addAttributeEventListener(deleteBtn, delId, () => {
+    deleteEvent(deleteBtn, delId);
+  });
+  return deleteBtn;
+}
