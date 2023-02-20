@@ -56,7 +56,7 @@ function prepareCheckBox(checkId) {
   const checkBox = createElement("input", "check");
   checkBox.type = "checkbox";
   addAttributeEventListener(checkBox, checkId, () => {
-    checkEvent(checkBox);
+    checkEvent(checkBox, checkId);
   });
   return checkBox;
 }
@@ -84,3 +84,5 @@ function prepareDeleteBtn(delId) {
   });
   return deleteBtn;
 }
+
+
