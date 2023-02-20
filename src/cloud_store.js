@@ -1,16 +1,16 @@
 const URL = "https://mk-todo-web-api.azurewebsites.net/api/JagadishTodoItems";
 const deleteURL = "https://mk-todo-web-api.azurewebsites.net/JagadishTodoItems/deleteAll";
-
-
+function DataStructure ( name, isCompleted, id) {
+    return{
+        name,
+        isCompleted,
+        id
+    }
+  }
 function CloudStorage(){
     
     return{
-        DataStructure : function ( name, isCompleted) {
-            return{
-                name,
-                isCompleted
-            }
-          },
+       
         getTodo  : async (apiURL) => {
             const response = await fetch( apiURL, { method : 'GET'})
             let result = await response.json()
@@ -29,7 +29,7 @@ function CloudStorage(){
             try{
                 const result = CloudStorage().setItem(URL, {
                     method : "POST",
-                    body : JSON.stringify(new CloudStorage().DataStructure(todoName)),
+                    body : JSON.stringify(new DataStructure(todoName)),
                 })
                 return result
             } catch(event){
@@ -40,12 +40,12 @@ function CloudStorage(){
         editTodo :async function(todoId , changeName , status = false) {
             const edit = await CloudStorage().setItem(`${URL}/${todoId}` , {
                 method : "PUT",
-                body : JSON.stringify(new CloudStorage().DataStructure( changeName, status))
+                body : JSON.stringify(new DataStructure( changeName, status , todoId))
             })
             return  edit
         },
-        deleteItem : function(todoId) {
-            CloudStorage().setItem(`${URL}/${todoId}`, {
+        deleteItem : async function(todoId) {
+            return await CloudStorage().setItem(`${URL}/${todoId}`, {
                 method : "DELETE" ,
             });
         },
@@ -58,5 +58,4 @@ function CloudStorage(){
     }
 }
 
-
-export {CloudStorage}
+export {CloudStorage, URL}
