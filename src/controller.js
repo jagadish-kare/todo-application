@@ -1,144 +1,182 @@
 import { TodoListView } from "./view.js";
-import { CloudStorage, LocalStore } from "./modal.js";
+import { CloudStorage, URL, DataStructure } from "./cloud_store.js";
+import { LocalStore } from "./local_store.js";
 const todoInput = document.querySelector(".todoInput");
-const url = "https://mk-todo-web-api.azurewebsites.net/api/JagadishTodoItems";
+const select = document.querySelector(".select");
 const addBtn = document.querySelector(".addBtn");
 const todoContainer = document.querySelector(".todoContainer");
 const mainDiv = document.querySelector(".main");
 const deleteAllItem = document.querySelector(".deleteAll");
+const { addEvent, append, prepareSaveBtn } = TodoListView();
+const { getTodo, createTodo, deleteItem, deleteAll, editTodo } = CloudStorage();
+const {get, setTodo, deleteAlltodoItem, deletetodoItem, editTodoItem} = LocalStore();
+
 todoInput.addEventListener("keypress", function (event) {
   if (event.key === "Enter") {
     if (mainDiv.innerText === "ADD") {
       event.preventDefault();
-      controller().createEvent();
+      createEvent();
     }
   }
 });
 
+function checkEventLocal(checkText, display, status, Text, todolist) {
+  checkText.style.textDecoration = display;
+  for (let i = 0; i < todolist.length; i++) {
+    if (todolist[i].name === Text) {
+      editTodoItem(i, new DataStructure(todolist[i].name, status), todolist);
+    }
+  }
+}
+
+async function selectMethod(method) {
+  const array = await method;
+  todoContainer.innerHTML = "";
+  array.map((obj) => {
+    addEvent(obj);
+  });
+}
+
+async function checkEventCloud(checkText, display, id, Text, status) {
+  checkText.style.textDecoration = display;
+  await editTodo(id, Text, status);
+}
+
 export function controller() {
-  const {prepareTodoPara, prepareTodoItem,prepareDeleteBtn,prepareEditBtn, prepareCheckBox, append, prepareSaveBtn} = TodoListView();
-  const {getTodo, createTodo, deleteItem, deleteAll, editTodo} = CloudStorage();
-  const {get, setTodo, deleteAlltodoItem, deletetodoItem, editTodoItem} = LocalStore()
   return {
-    
-    addEvent: function (nodetext, Id, stat) {
-      const para = prepareTodoPara();
-      const node = prepareTodoItem(nodetext);
-      const dBtn = prepareDeleteBtn(Id);
-      const eBtn = prepareEditBtn(Id);
-      let cBox = prepareCheckBox(Id);
-      append(para, node);
-      append(para, cBox);
-      if (stat === true) {
-        cBox.checked = true;
-        node.style.textDecoration = "line-through";
-      }
-      append(para, eBtn);
-      append(para, dBtn);
-      append(todoContainer, para);
-    },
-
-    createEvent: async function () {
-      if (todoInput.value === "") {
-        alert("ENTER YOUR TASK...");
-      } else {
-        const text = todoInput.value;
-        const response = await createTodo(text);
-        const result = await response.json();
-        const todolist = get();
-        todolist.push(text);
-        setTodo(todolist);
-        this.addEvent(text, result.id);
-        todoInput.value = "";
-      }
-    },
-
-    deleteEvent: function (deleteBtn) {
+    deleteEvent: async function (deleteBtn, delId) {
       const dele = deleteBtn.parentElement;
       const text = dele.firstChild.innerText;
-      const id = deleteBtn.id;
-      todoContainer.removeChild(dele);
-      deleteItem(id);
-      const todolist = get();
-      for (let i = 0; i < todolist.length; i++) {
-        if (todolist[i] === text) {
-          deletetodoItem(i, todolist);
+      if (select.value === "CLOUD - STORAGE") {
+        const deleteRes = await deleteItem(delId);
+        deleteRes.status === 204 && todoContainer.removeChild(dele);
+      } else if (select.value === "LOCAL - STORAGE") {
+        const todolist = get();
+        for (let i = 0; i < todolist.length; i++) {
+          if (todolist[i].name === text) {
+            deletetodoItem(i, todolist);
+            todoContainer.removeChild(dele);
+          }
         }
       }
     },
-    editEvent: function (editBtn) {
+
+    editEvent: function (editBtn, editId) {
       const edit = editBtn.parentElement;
       const edittext = edit.firstChild.innerText;
       todoInput.value = edittext;
       todoContainer.removeChild(edit);
       mainDiv.removeChild(addBtn);
-      const id = editBtn.id;
-      const save = prepareSaveBtn(id, edittext);
+      const save = prepareSaveBtn(editId, edittext);
       save.className = "saveBtn";
       append(mainDiv, save);
     },
 
-    saveEvent: async function (saveBtn, oldText) {
+    saveEvent: async function (saveBtn, oldText, savId) {
       if (todoInput.value === "") {
         alert("ENTER YOUR TASK...");
       } else {
         const text = todoInput.value;
-        const id = saveBtn.id;
-        await editTodo(id, text);
-        const todolist = get();
-        for (let i = 0; i < todolist.length; i++) {
-          if (todolist[i] === oldText) {
-            editTodoItem(i, text, todolist);
+        if (select.value === "CLOUD - STORAGE") {
+          const editResponse = await editTodo(savId, text);
+          if (editResponse.status === 204) {
+            addEvent(new DataStructure(text,false, savId));
+          }
+        } else {
+          const todolist = get();
+          for (let i = 0; i < todolist.length; i++) {
+            if (todolist[i].name === oldText) {
+              editTodoItem(i, new DataStructure(text), todolist);
+              addEvent(new DataStructure(text));
+            }
           }
         }
-        this.addEvent(text, id);
         mainDiv.removeChild(saveBtn);
         mainDiv.appendChild(addBtn);
         todoInput.value = "";
       }
     },
 
-    deleteAll: function () {
-      if (todoContainer.firstChild) {
-        const confirmation = confirm("ALL YOUR TASKS WILL BE DELETED...");
-        if (confirmation === true) {
-          deleteAll();
-          deleteAlltodoItem();
-          todoContainer.innerHTML = "";
-        }
-      } else {
-        alert("NO... ITEMS... TO... DELETE");
-      }
-    },
-
-    checkEvent: async function (checkBox) {
-      const id = checkBox.id;
+    checkEvent: async function (checkBox, id) {
       const checkText = checkBox.parentElement.firstChild;
       const Text = checkBox.parentElement.firstChild.innerText;
-      if (checkBox.checked) {
-        checkText.style.textDecoration = "line-through";
-        await editTodo(id, Text, true);
+      if (select.value === "CLOUD - STORAGE") {
+        if (checkBox.checked) {
+          checkEventCloud(checkText, "line-through", id, Text, true);
+        } else {
+          checkEventCloud(checkText, "none", id, Text);
+        }
       } else {
-        checkText.style.textDecoration = "none";
-        await editTodo(id, Text);
+        const todolist = get();
+        if (checkBox.checked) {
+          checkEventLocal(checkText, "line-through", true, Text, todolist);
+        } else {
+          checkEventLocal(checkText, "none", false, Text, todolist);
+        }
       }
-    },
-
-    refreshEvent: async function () {
-      const arrTodo = await getTodo(url);
-      arrTodo.map(({ name, id, isCompleted }) => {
-        this.addEvent(name, id, isCompleted);
-      });
     },
   };
 }
 
+async function createEvent() {
+  if (todoInput.value === "") {
+    alert("ENTER YOUR TASK...");
+  } else {
+    const text = todoInput.value;
+    if (select.value === "CLOUD - STORAGE") {
+      const response = await createTodo(text);
+      const result = await response.json();
+      addEvent(result);
+      todoInput.value = "";
+    } else {
+      const todolist = get();
+      todolist.push(new DataStructure(text));
+      setTodo(todolist);
+      addEvent(new DataStructure(text));
+      todoInput.value = "";
+    }
+  }
+}
+
+function deleteAllTask() {
+  if (todoContainer.firstChild) {
+    const confirmation = confirm("ALL YOUR TASKS WILL BE DELETED...");
+    if (confirmation === true) {
+      if (select.value === "CLOUD - STORAGE") {
+        deleteAll();
+      } else {
+        deleteAlltodoItem();
+      }
+      todoContainer.innerHTML = "";
+    }
+  } else {
+    alert("NO... ITEMS... TO... DELETE");
+  }
+}
+
+async function refreshEvent() {
+  alert("CLOUD-STORAGE IS YOUR DEFAULT STORAGE");
+  const arrTodo = await getTodo(URL);
+  arrTodo.map((result) => {
+    addEvent(result);
+  });
+}
+
+select.addEventListener("change", async () => {
+  if (select.value === "CLOUD - STORAGE") {
+    selectMethod(getTodo(URL));
+  } else {
+    selectMethod(get());
+  }
+});
+
 addBtn.addEventListener("click", () => {
-  controller().createEvent();
+  createEvent();
 });
 
 deleteAllItem.addEventListener("click", () => {
-  controller().deleteAll();
+  deleteAllTask();
 });
 
-controller().refreshEvent();
+refreshEvent();
+export { todoContainer };
