@@ -2,6 +2,12 @@ function LocalStore(){
     const storage = localStorage;
 
     return{
+        DataStructure : function ( name, isCompleted = false) {
+            return{
+               name,
+                 isCompleted
+            }
+        },
         get : function () {
             let list = storage.getItem("todo")?JSON.parse(storage.getItem("todo")) : []
             return list
@@ -24,3 +30,4 @@ function LocalStore(){
 }
 
 export {LocalStore}
+
