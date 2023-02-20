@@ -1,6 +1,6 @@
 const URL = "https://mk-todo-web-api.azurewebsites.net/api/JagadishTodoItems";
 const deleteURL = "https://mk-todo-web-api.azurewebsites.net/JagadishTodoItems/deleteAll";
-function DataStructure ( name, isCompleted, id) {
+function DataStructure ( name, isCompleted = false, id) {
     return{
         name,
         isCompleted,
@@ -58,4 +58,4 @@ function CloudStorage(){
     }
 }
 
-export {CloudStorage, URL}
+export {CloudStorage, URL, DataStructure}
