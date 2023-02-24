@@ -3,7 +3,7 @@ function LocalStore(){
 
     return{
         get : function () {
-            let list = storage.getItem("todo")?JSON.parse(storage.getItem("todo")) : []
+            let list = JSON.parse(storage.getItem("todo")) || []
             return list
         },
         setTodo : function (arr) {
